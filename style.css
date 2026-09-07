@@ -1,0 +1,34 @@
+body {
+    background-color: #f0f2f5 !important;
+    font-family: 'Segoe UI', Helvetica, Arial, sans-serif;
+    color: #41525d;
+}
+
+.wa-header {
+    background-color: #00a884;
+    color: white;
+}
+
+.wa-btn-green {
+    background-color: #00a884;
+    border: none;
+    color: white;
+    font-weight: 600;
+}
+
+.wa-btn-green:hover {
+    background-color: #01755f;
+    color: white;
+}
+
+.wa-card {
+    background: #ffffff;
+    border-radius: 3px;
+    box-shadow: 0 1px 3px rgba(11, 20, 26, 0.08);
+    border: none;
+}
+
+.chat-list-item:hover {
+    background-color: #f5f6f6;
+    cursor: pointer;
+}

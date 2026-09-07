@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chats - Find Me</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        body { background-color: #dadbd4 !important; height: 100vh; overflow: hidden; font-family: 'Segoe UI', sans-serif; }
+        .wa-app-container { height: 95vh; max-width: 1400px; margin: 2.5vh auto; background: #f0f2f5; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border-radius: 5px; display: flex; overflow: hidden; }
+        .wa-sidebar { width: 400px; background: #ffffff; border-right: 1px solid #e9edef; display: flex; flex-direction: column; }
+        .wa-sidebar-header { background: #f0f2f5; padding: 10px 16px; display: flex; justify-content: space-between; align-items: center; height: 60px; }
+        .wa-main-area { flex-grow: 1; background: #e5ddd5; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
+        .wa-green-top-bar { background-color: #00a884; height: 127px; width: 100%; position: absolute; top: 0; left: 0; z-index: -1; }
+        .wa-btn-green { background-color: #00a884; border: none; color: white; font-weight: 600; }
+        .wa-btn-green:hover { background-color: #01755f; color: white; }
+        .chat-list-item:hover { background-color: #f5f6f6; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="wa-green-top-bar"></div>
+
+    <div class="wa-app-container">
+        
+        <!-- Left Sidebar: Profile, Search, and Chat List -->
+        <div class="wa-sidebar">
+            
+            <!-- Sidebar Header: Profile Pic & Unique Code -->
+            <div class="wa-sidebar-header">
+                <div class="d-flex align-items-center">
+                    <img src="{{ url_for('static', filename='uploads/' + (profile_pic if profile_pic else 'default.png')) }}" 
+                         class="rounded-circle me-2 shadow-sm" width="40" height="40" style="object-fit: cover;" title="Logged in as {{ username }}">
+                    <div>
+                        <span class="fw-bold text-dark fs-6 d-block" style="line-height: 1.1;">{{ username }}</span>
+                        <small class="text-muted" style="font-size: 12px;">Code: <strong class="text-success">{{ unique_code }}</strong></small>
+                    </div>
+                </div>
+                <div>
+                    <a href="/logout" class="btn btn-sm btn-light text-danger shadow-sm" title="Logout"><i class="fa-solid fa-arrow-right-from-bracket"></i></a>
+                </div>
+            </div>
+
+            <!-- Search Bar (Using Unique Code) -->
+            <div class="p-2 bg-white border-bottom">
+                <form action="/search" method="POST" class="input-group input-group-sm">
+                    <span class="input-group-text bg-light border-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
+                    <input type="text" name="unique_code" class="form-control bg-light border-0 shadow-none" placeholder="Search by unique code..." required>
+                    <button type="submit" class="btn wa-btn-green px-3">Go</button>
+                </form>
+            </div>
+
+            <!-- Quick Action: Nearby Users -->
+            <div class="p-2 bg-light border-bottom text-center">
+                <a href="/nearby-users" class="btn btn-sm wa-btn-green w-100 fw-bold shadow-sm">
+                    <i class="fa-solid fa-location-dot me-1"></i> Find Nearby Users
+                </a>
+            </div>
+
+            <!-- Chat List & Pending Requests -->
+            <div class="flex-grow-1 overflow-auto">
+                <div class="p-2 text-muted small fw-bold bg-light border-bottom">RECENT CHATS</div>
+                {% if friends %}
+                    {% for friend in friends %}
+                        <a href="/chat/{{ friend[0] }}" class="text-decoration-none text-dark">
+                            <div class="d-flex align-items-center p-2 chat-list-item border-bottom">
+                                <img src="{{ url_for('static', filename='uploads/' + (friend[2] if friend[2] else 'default.png')) }}" 
+                                     class="rounded-circle me-3" width="45" height="45" style="object-fit: cover;">
+                                <div class="w-100">
+                                    <h6 class="mb-0 fw-bold text-dark">{{ friend[1] }}</h6>
+                                    <small class="text-muted">Tap to chat</small>
+                                </div>
+                            </div>
+                        </a>
+                    {% endfor %}
+                {% else %}
+                    <div class="p-4 text-center text-muted small">No active chats yet. Search a unique code above to connect.</div>
+                {% endif %}
+
+                <!-- Pending Friend Requests -->
+                {% if requests %}
+                    <div class="p-2 text-muted small fw-bold bg-light border-bottom mt-2">PENDING REQUESTS</div>
+                    {% for req in requests %}
+                        <div class="d-flex align-items-center justify-content-between p-2 border-bottom bg-white">
+                            <div class="d-flex align-items-center">
+                                <img src="{{ url_for('static', filename='uploads/' + (req[3] if req[3] else 'default.png')) }}" 
+                                     class="rounded-circle me-2" width="35" height="35" style="object-fit: cover;">
+                                <div>
+                                    <span class="fw-bold fs-6 d-block" style="line-height: 1">{{ req[2] }}</span>
+                                    <small class="text-muted" style="font-size: 11px;">Code: {{ req[4] }}</small>
+                                </div>
+                            </div>
+                            <div>
+                                <form action="/handle-request/{{ req[0] }}/accept" method="POST" class="d-inline">
+                                    <button type="submit" class="btn wa-btn-green btn-sm py-0 px-2" style="font-size: 12px;">Accept</button>
+                                </form>
+                                <form action="/handle-request/{{ req[0] }}/delete" method="POST" class="d-inline">
+                                    <button type="submit" class="btn btn-outline-danger btn-sm py-0 px-2" style="font-size: 12px;">X</button>
+                                </form>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            </div>
+
+        </div>
+
+        <!-- Right Main Welcome Area ("Find Me" Branded) -->
+        <div class="wa-main-area">
+            <div style="max-width: 480px;" class="p-4 bg-white shadow-sm rounded-4 border">
+                <div class="mb-3 text-success">
+                    <i class="fa-solid fa-earth-americas fa-3x"></i>
+                </div>
+                <h2 class="fw-bold text-dark mb-2">Find Me Web</h2>
+                <p class="text-muted small mb-4">Connect instantly with people around you and across the globe. Search using unique codes or discover nearby users securely.</p>
+                <div class="d-flex justify-content-center gap-3 text-muted" style="font-size: 13px;">
+                    <span><i class="fa-solid fa-shield-halved text-success me-1"></i> Secure Chat</span>
+                    <span><i class="fa-solid fa-location-crosshairs text-success me-1"></i> Location Enabled</span>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</body>
+</html>

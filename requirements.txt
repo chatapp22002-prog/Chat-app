@@ -1,0 +1,6 @@
+Flask
+Flask-SocketIO
+Flask-Mail
+Werkzeug
+gunicorn
+eventlet
